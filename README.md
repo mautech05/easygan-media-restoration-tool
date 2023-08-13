@@ -1,4 +1,4 @@
-[**EasyGAN Media Upscaling Tool**](https://github.com/mautech05/easygan-media-restoration-tool) es una interfaz gráfica basada en [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) que permite restaurar y reescalar archivos multimedia (imágenes y video) de manera rápida y sencilla.
+[**EasyGAN Media Restoration Tool**](https://github.com/mautech05/easygan-media-restoration-tool) es una interfaz gráfica basada en [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) que permite restaurar y reescalar archivos multimedia (imágenes y video) de manera rápida y sencilla.
 
 Si quieres ver cómo funciona y qué resultados puedes obtener, te invito a revisar la sección de [Demostración de funcionamiento](https://github.com/mautech05/easygan-media-restoration-tool/blob/main/demos.md) y el [GitHub de Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
 
@@ -10,7 +10,7 @@ Puedes utilizar estos *checksum* para verificar que la descarga no ha sido alter
 
 | NOMBRE DE ARCHIVO               | SHA256                                                           | MD5                              |
 |---------------------------------|------------------------------------------------------------------|----------------------------------|
-| [EasyGAN_MediaRestorationTool.ahk](https://github.com/mautech05/easygan-media-restoration-tool/blob/main/EasyGAN_MediaUpscaling_Tool.ahk) | 7321fc1dbfd2d663e0883aa1a3751b022776ae63a64b689b253909d7d8c74f07 | 2e37834a9dcc874fcc8d81d2b3366f3d |
+| [EasyGAN_MediaRestorationTool.ahk](https://github.com/mautech05/easygan-media-restoration-tool/blob/main/EasyGAN_MediaRestorationTool.ahk) | b07be8e3bbad3f99f2fdac9922ff043d6121adcbf7753767e43526b2d3c4eb5d | 97b1ee54e0f40cca603f1b4290f60980 |
 
 ## Instalación
 ⚠️⚠️Es importante mencionar que este programa **requiere** del uso de **AutoHotKey v2** para funcionar. No obstante, también ofrecemos una versión ya compilada para aquellos que no desean o no pueden instalar AutoHotKey. Dicha versión compilada [no está firmada digitalmente](https://www.redeszone.net/2018/04/21/comprobar-firmas-digitales-programas-windows/) (la licencia cuesta casi 500 euros) por lo que Windows tratará de evitar su ejecución.

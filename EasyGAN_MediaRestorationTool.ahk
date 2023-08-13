@@ -4,12 +4,12 @@
 Persistent
 
 ;Change this on every new compilation/update
-global compilation := "0.1.0"
-global compilation_version := 203512082023 ;it indicates to the program if it was updated (WHETHER OR NOT THE LIBRARIES WHERE UPDATED) ;syntax recommendation: 24HHHHddMMyyyy ; example: 143809042023 (14:38, 09/April/2023)
+global compilation := "0.1.1"
+global compilation_version := 002513082023 ;it indicates to the program if it was updated (WHETHER OR NOT THE LIBRARIES WHERE UPDATED) ;syntax recommendation: 24HHHHddMMyyyy ; example: 143809042023 (14:38, 09/April/2023)
 global libraries_updated := "no" ;it indicates to the program if one of the libraries (FFmpeg, GFPGAN, RealESRGAN) was updated (MUST BE CHANGED IF THE VALUE OF compilation_version DID SO)
-;@Ahk2Exe-SetVersion 0.1.0
+;@Ahk2Exe-SetVersion 0.1.1
 ;@Ahk2Exe-SetName EasyGAN Media Restoration Tool
-;@Ahk2Exe-SetDescription Reestaurador de medios basado en GAN
+;@Ahk2Exe-SetDescription Restaurador de medios basado en GAN
 ;@Ahk2Exe-SetCompanyName MauTech05
 ;@Ahk2Exe-SetCopyright MauTech05
 ;@Ahk2Exe-SetLanguage 0x080a
@@ -397,9 +397,13 @@ getPython(*){
 	;Add Python to the system PATH
 	pythonScripts:= StrReplace(python_tool_path, "\Roaming", "")
 	system_path := RegRead("HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment", "PATH") ;Read current values of PATH
-	system_path .= ";" pythonScripts ";"
+	system_path .= ";" pythonScripts ";" pythonScripts "\Scripts\;"
 	RegWrite(system_path, "REG_EXPAND_SZ", "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment", "PATH") ;Write edited values to PATH
 	SendMessage(0x1A, 0, StrPtr("Environment"), , "ahk_id 0xFFFF")
+
+	;Install Pip package manager (it will be used to install RealESRGAN's and GFPGAN's requirements)
+	RunWait "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py", , "Hide"
+	RunWait A_ComSpec " /c python get-pip.py", python_tool_path, "Hide"
 
 	;Install GFPGAN and RealESRGAN requirements
 	HideTrayTip()
@@ -433,6 +437,14 @@ getPython(*){
 gotPythonInstaller(*) {
 	gotPythonAlready := MsgBox("Si eres un usuario más avanzado y ya cuentas con un intérprete de Python asegúrate de que la ruta a este se encuentre dentro del PATH en las variables de entorno del sistema.`n`nSi ya lo hiciste haz clic en el botón de [SI].`nPara cerrar esta alerta haz clic en [NO]", "Asistente de Instalación de Python - EasyGAN M.R.T", 68)
 	if gotPythonAlready = "Yes" {
+		;Install GFPGAN and RealESRGAN requirements
+		HideTrayTip()
+		TrayTip "Descargando requisito 1/2 (Descargando adicionales de GFPGAN desde github.com)", "Asistente de Instalación de Python - EasyGAN M.R.T", "Iconi"
+		RunWait A_ComSpec " /c pip install -r requirements.txt", gfpgan_tool_path, "Hide"
+		HideTrayTip()
+		TrayTip "Descargando requisito 2/2 (Descargando adicionales de RealESRGAN desde github.com)", "Asistente de Instalación de Python - EasyGAN M.R.T", "Iconi"
+		RunWait A_ComSpec " /c pip install -r requirements.txt", esrgan_python_path, "Hide"
+
 		try
 			FileDelete python_installed
 		FileAppend "Externally Installed", python_installed
@@ -442,6 +454,14 @@ gotPythonInstaller(*) {
 gotPythonMain(*) {
 	gotPythonAlready := MsgBox("Si eres un usuario más avanzado y ya cuentas con un intérprete de Python asegúrate de que la ruta a este se encuentre dentro del PATH en las variables de entorno del sistema.`n`nSi ya lo hiciste haz clic en el botón de [SI].`nPara cerrar esta alerta haz clic en [NO]", "Asistente de Instalación de Python - EasyGAN M.R.T", 68)
 	if gotPythonAlready = "Yes" {
+		;Install GFPGAN and RealESRGAN requirements
+		HideTrayTip()
+		TrayTip "Descargando requisito 1/2 (Descargando adicionales de GFPGAN desde github.com)", "Asistente de Instalación de Python - EasyGAN M.R.T", "Iconi"
+		RunWait A_ComSpec " /c pip install -r requirements.txt", gfpgan_tool_path, "Hide"
+		HideTrayTip()
+		TrayTip "Descargando requisito 2/2 (Descargando adicionales de RealESRGAN desde github.com)", "Asistente de Instalación de Python - EasyGAN M.R.T", "Iconi"
+		RunWait A_ComSpec " /c pip install -r requirements.txt", esrgan_python_path, "Hide"
+
 		try
 			FileDelete python_installed
 		FileAppend "Externally Installed", python_installed
@@ -463,9 +483,13 @@ finishInstallation(*) {
 		FileAppend compilation_version, compilation_installed
 	}
 
-	FileCreateShortcut installation_base_dir "\EasyGAN_MediaRestorationTool.ahk", A_ProgramsCommon "\EasyGAN Media Restoration Tool.lnk", , , "Reestaurador de medios basado en GAN", script_icon
+	if A_IsCompiled
+		shortcutSource := "EasyGAN_release.exe"
+	else
+		shortcutSource := "EasyGAN_MediaRestorationTool.ahk"
+	FileCreateShortcut installation_base_dir "\" shortcutSource, A_ProgramsCommon "\EasyGAN Media Restoration Tool.lnk", , , "Restaurador de medios basado en GAN", script_icon
 	if desktopShortcut.Value = 1
-		FileCreateShortcut installation_base_dir "\EasyGAN_MediaRestorationTool.ahk", A_Desktop "\EasyGAN Media Restoration Tool.lnk", , , "Reestaurador de medios basado en GAN", script_icon
+		FileCreateShortcut installation_base_dir "\" shortcutSource, A_Desktop "\EasyGAN Media Restoration Tool.lnk", , , "Restaurador de medios basado en GAN", script_icon
 	Reload
 }
 

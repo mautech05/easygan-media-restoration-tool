@@ -4,10 +4,10 @@
 Persistent
 
 ;Change this on every new compilation/update
-global compilation := "0.1.1"
-global compilation_version := 002513082023 ;it indicates to the program if it was updated (WHETHER OR NOT THE LIBRARIES WHERE UPDATED) ;syntax recommendation: 24HHHHddMMyyyy ; example: 143809042023 (14:38, 09/April/2023)
+global compilation := "0.1.2"
+global compilation_version := 140126032024 ;it indicates to the program if it was updated (WHETHER OR NOT THE LIBRARIES WHERE UPDATED) ;syntax recommendation: 24HHHHddMMyyyy ; example: 143809042023 (14:38, 09/April/2023)
 global libraries_updated := "no" ;it indicates to the program if one of the libraries (FFmpeg, GFPGAN, RealESRGAN) was updated (MUST BE CHANGED IF THE VALUE OF compilation_version DID SO)
-;@Ahk2Exe-SetVersion 0.1.1
+;@Ahk2Exe-SetVersion 0.1.2
 ;@Ahk2Exe-SetName EasyGAN Media Restoration Tool
 ;@Ahk2Exe-SetDescription Restaurador de medios basado en GAN
 ;@Ahk2Exe-SetCompanyName MauTech05
@@ -105,6 +105,7 @@ if A_IsCompiled && !FileExist(dark_buttons "\tabs_border.png") && !FileExist(lig
 	DirCreate dark_buttons
 	DirCreate libraries_dir
 	DirCreate restored_media_dir
+	DirCreate patched_folder_path
 	FileInstall "Configuraciones\restore-hobby-flaticons.com-flat.ico", settings_dir "\restore-hobby-flaticons.com-flat.ico"
 	FileInstall "Configuraciones\botones\dark\button.png", dark_buttons "\button.png"
 	FileInstall "Configuraciones\botones\dark\button_descargar-e-instalar-ahora.png", dark_buttons "\button_descargar-e-instalar-ahora.png"
@@ -159,6 +160,26 @@ if Python = "Installed" && !FileExist(python_tool_path "\python.exe") { ;The fil
 	FileAppend "Not Installed", python_installed
 	global python := FileRead(python_installed)
 }
+check_for_pylib(lib_name){
+	cmd_command := Format("python {1}{2}{1} {1}{3}{1} > {1}{4}\pylib_{3}.txt{1}", '"', "find-library.py", lib_name, patched_folder_path)
+	RunWait A_ComSpec " /c " cmd_command, settings_dir, "Hide"
+}
+if Python = "Externally Installed" { ;Check if RealESRGAN's and GFPGAN's requirements are installed (this might be useful if the user just reset their PC to factory settings but they still have EasyGAN Media Restoration Tool installed on another drive)
+	DirCreate patched_folder_path ;Just in case
+	check_for_pylib("basicsr")
+	check_for_pylib("facexlib")
+	check_for_pylib("torchvision")
+	basicsr_status := FileRead(patched_folder_path "\pylib_basicsr.txt")
+	facexlib_status := FileRead(patched_folder_path "\pylib_facexlib.txt")
+	torchvision_status := FileRead(patched_folder_path "\pylib_torchvision.txt")
+
+	if (InStr(basicsr_status, "Installed", 1, 1) != 1) || (InStr(facexlib_status, "Installed", 1, 1) != 1) || (InStr(torchvision_status, "Installed", 1, 1) != 1) { ;If any library is missing, try installing them all
+		MsgBox "Detectamos que te faltan algunos complementos de este programa que funcionan con Python. Te avisaremos cuando se complete la descarga de todos.", "Complementos requeridos - EasyGAN Media Restoration Tool", "48 T10"
+		RunWait A_ComSpec " /c pip install -r requirements.txt", gfpgan_tool_path, "Hide"
+		RunWait A_ComSpec " /c pip install -r requirements.txt", esrgan_python_path, "Hide"
+		TrayTip "Hemos terminado con la descarga e instalación de las librerías/complementos. Abriremos el programa automáticamente. ¡Disfruta!", "EasyGAN Media Restoration Tool", "Iconi"
+	}
+}
 
 
 ;====== INSTALLER ======
@@ -180,6 +201,7 @@ if !FileExist(compilation_installed) || (compilation_version > cur_compilation_v
 
 	DirCreate libraries_dir ;here will be storaged the third-party algorithms such as FFmpeg, GFPGAN, RealESRGAN.
 	DirCreate restored_media_dir ;this is the default folder for the output files (user can select another folder in GUI menu)
+	DirCreate patched_folder_path
 
 	A_IconTip := "Instalador de EasyGAN Media Restoration Tool"
 	TraySetIcon(script_icon)
@@ -438,6 +460,8 @@ gotPythonInstaller(*) {
 	gotPythonAlready := MsgBox("Si eres un usuario más avanzado y ya cuentas con un intérprete de Python asegúrate de que la ruta a este se encuentre dentro del PATH en las variables de entorno del sistema.`n`nSi ya lo hiciste haz clic en el botón de [SI].`nPara cerrar esta alerta haz clic en [NO]", "Asistente de Instalación de Python - EasyGAN M.R.T", 68)
 	if gotPythonAlready = "Yes" {
 		;Install GFPGAN and RealESRGAN requirements
+		MsgBox "Comenzaremos a descargar los complementos de este programa que funcionan con Python. Te avisaremos cuando se complete la descarga de cada uno.", "Asistente de Instalación de Python - EasyGAN M.R.T", "64 T10"
+		RunWait A_ComSpec " /c python upgrade-pip.py", settings_dir, "Hide" ;Upgrade pip prior to requirements installation
 		HideTrayTip()
 		TrayTip "Descargando requisito 1/2 (Descargando adicionales de GFPGAN desde github.com)", "Asistente de Instalación de Python - EasyGAN M.R.T", "Iconi"
 		RunWait A_ComSpec " /c pip install -r requirements.txt", gfpgan_tool_path, "Hide"
@@ -455,12 +479,15 @@ gotPythonMain(*) {
 	gotPythonAlready := MsgBox("Si eres un usuario más avanzado y ya cuentas con un intérprete de Python asegúrate de que la ruta a este se encuentre dentro del PATH en las variables de entorno del sistema.`n`nSi ya lo hiciste haz clic en el botón de [SI].`nPara cerrar esta alerta haz clic en [NO]", "Asistente de Instalación de Python - EasyGAN M.R.T", 68)
 	if gotPythonAlready = "Yes" {
 		;Install GFPGAN and RealESRGAN requirements
+		MsgBox "Comenzaremos a descargar los complementos de este programa que funcionan con Python. Te avisaremos cuando se complete la descarga de cada uno.", "Asistente de Instalación de Python - EasyGAN M.R.T", "64 T10"
+		RunWait A_ComSpec " /c python upgrade-pip.py", settings_dir, "Hide" ;Upgrade pip prior to requirements installation
 		HideTrayTip()
 		TrayTip "Descargando requisito 1/2 (Descargando adicionales de GFPGAN desde github.com)", "Asistente de Instalación de Python - EasyGAN M.R.T", "Iconi"
 		RunWait A_ComSpec " /c pip install -r requirements.txt", gfpgan_tool_path, "Hide"
 		HideTrayTip()
 		TrayTip "Descargando requisito 2/2 (Descargando adicionales de RealESRGAN desde github.com)", "Asistente de Instalación de Python - EasyGAN M.R.T", "Iconi"
 		RunWait A_ComSpec " /c pip install -r requirements.txt", esrgan_python_path, "Hide"
+		MsgBox "¡Gracias por esperar! Reiniciaremos el programa para cargar todos los archivos necesarios.", "Asistente de Instalación de Python - EasyGAN M.R.T", "64 T10"
 
 		try
 			FileDelete python_installed
@@ -902,7 +929,6 @@ videoRestoration() {
 			RunWait A_ComSpec " /c " extframes_command, ffmpeg_tool_path, "Hide"
 
 			cmd_command := Format("realesrgan-ncnn-vulkan.exe -i {1}{3}{2} -o {1}{4}{2} -n realesr-animevideov3 -s {5} -f jpg", '"', '"', input_frames_path, output_frames_path, upscaling_factor) ;Inference with Real-ESRGAN executable file
-			;python inference_realesrgan_video.py --input "D:\Videos\bakugan-masquerade-se-revela.mp4" --output "D:\Tools\Archivos Salida\Medios Restaurados\prueba" --ffmpeg_bin "D:\Program Files\MPV Player\" --fps 15 --ext png --model_name realesr-animevideov3 --outscale 4 --face_enhance --fp32 --extract_frame_first --num_process_per_gpu 2
 			RunWait A_ComSpec " /c " cmd_command, esrgan_vulkan_path, "Hide"
 
 			video_output_path := results_folder "\Video_" A_NowUTC ".mp4"
